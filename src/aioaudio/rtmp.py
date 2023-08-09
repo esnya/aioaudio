@@ -6,8 +6,10 @@ from . import AudioSink
 
 
 class RTMPAudioSink(AudioSink):
-    def __init__(self, sampling_rate: int, url: str):
+    def __init__(self, sampling_rate: int, format: str, channels: int, url: str):
         self.sampling_rate = sampling_rate
+        self.format = format
+        self.channels = channels
         self.url = url
 
     async def __aenter__(self) -> StreamWriter:
@@ -16,11 +18,11 @@ class RTMPAudioSink(AudioSink):
             "-y",
             "-re",
             "-f",
-            "f32le",
+            self.format,
             "-ar",
             str(self.sampling_rate),
             "-ac",
-            str(1),
+            str(self.channels),
             "-i",
             "-",
             "-acodec",

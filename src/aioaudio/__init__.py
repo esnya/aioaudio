@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import AsyncContextManager, AsyncIterable, AsyncIterator
 import numpy as np
+import loader as loader_
 
 
 class AudioSource(AsyncContextManager, AsyncIterable[np.ndarray]):
@@ -21,3 +22,6 @@ class AudioSink(AsyncContextManager):
     async def __call__(self, audio_stream: AsyncIterable[np.ndarray]):
         async for audio in audio_stream:
             await self.write(audio)
+
+
+loader = loader_

@@ -48,6 +48,8 @@ class RTPAudioSinkConfig(AudioSinkBaseModel):
 
 class RTMPAudioSinkConfig(AudioSinkBaseModel):
     mode: Literal["rtmp"] = "rtmp"
+    format: str = "f32le"
+    channels: int = 1
     url: str = "rtmp://localhost:1234/live/test"
 
 
@@ -153,6 +155,8 @@ def audio_sink(config: AudioSinkBaseModel, sampling_rate: int) -> AudioSink:
                 url=url,
             )
         case RTPAudioSinkConfig(
+            format=format,
+            channels=channels,
             url=url,
         ):
             from .rtp import RTPAudioSink
@@ -162,13 +166,17 @@ def audio_sink(config: AudioSinkBaseModel, sampling_rate: int) -> AudioSink:
                 url=url,
             )
         case RTMPAudioSinkConfig(
+            format=format,
+            channels=channels,
             url=url,
         ):
             from .rtmp import RTMPAudioSink
 
             return RTMPAudioSink(
-                sampling_rate,
-                url,
+                sampling_rate=sampling_rate,
+                format=format,
+                channels=channels,
+                url=url,
             )
         case _:
             raise NotImplementedError("Unknown audio sink for config %s", config)
