@@ -1,8 +1,9 @@
-from asyncio import StreamWriter, subprocess
-
 import numpy as np
 
-from . import AudioSink
+from .ffmpeg import ffmpeg_sink
+
+
+from .base import AudioSink
 
 
 class RTMPAudioSink(AudioSink):
@@ -12,9 +13,8 @@ class RTMPAudioSink(AudioSink):
         self.channels = channels
         self.url = url
 
-    async def __aenter__(self) -> StreamWriter:
-        self.ffmpeg = await subprocess.create_subprocess_exec(
-            "ffmpeg",
+    async def __aenter__(self) -> "RTMPAudioSink":
+        self.ffmpeg, self.stdin = await ffmpeg_sink(
             "-y",
             "-re",
             "-f",
@@ -32,12 +32,8 @@ class RTMPAudioSink(AudioSink):
             "-f",
             "flv",
             self.url,
-            stdin=subprocess.PIPE,
         )
-        self.stdin = self.ffmpeg.stdin
-        assert self.stdin, "Failed to open pipe"
-
-        return self.stdin
+        return self
 
     async def __aexit__(self, *args, **kwargs) -> None:
         if self.stdin:

@@ -2,7 +2,7 @@ import asyncio
 from typing import AsyncIterator, Optional
 
 import numpy as np
-from . import AudioSink, AudioSource
+from .base import AudioSink, AudioSource
 import pyaudio
 
 pa = pyaudio.PyAudio()

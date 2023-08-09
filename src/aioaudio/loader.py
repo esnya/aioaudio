@@ -2,7 +2,7 @@ from typing import Literal, Optional, Union
 from typing_extensions import Annotated
 from pydantic import BaseModel, Field
 
-from . import AudioSource, AudioSink
+from .base import AudioSource, AudioSink
 
 
 class AudioSourceBaseModel(BaseModel):
@@ -108,17 +108,17 @@ def audio_source(config: AudioSourceConfig, sampling_rate: int) -> AudioSource:
                 sampling_rate,
                 url=url,
             )
-        case RTPAudioSourceConfig(
-            seconds_per_buffer=seconds_per_buffer,
-            url=url,
-        ):
-            from .rtp import RTPAudioSource
+        # case RTPAudioSourceConfig(
+        #     seconds_per_buffer=seconds_per_buffer,
+        #     url=url,
+        # ):
+        #     from .rtp import RTPAudioSource
 
-            return RTPAudioSource(
-                int(seconds_per_buffer * sampling_rate * 4),
-                sampling_rate,
-                url=url,
-            )
+        #     return RTPAudioSource(
+        #         int(seconds_per_buffer * sampling_rate * 4),
+        #         sampling_rate,
+        #         sdp,
+        #     )
         case _:
             raise NotImplementedError("Unknown audio source for config %s", config)
 
