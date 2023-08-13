@@ -2,10 +2,8 @@ import asyncio
 from typing import AsyncIterator, Optional
 
 import numpy as np
-from .base import AudioSink, AudioSource
-import pyaudio
 
-pa = pyaudio.PyAudio()
+from .base import AudioSink, AudioSource
 
 
 class LocalAudioSource(AudioSource):
@@ -15,6 +13,9 @@ class LocalAudioSource(AudioSource):
         frames_per_buffer: int,
         input_device_index: Optional[int] = None,
     ):
+        import pyaudio
+
+        pa = pyaudio.PyAudio()
         self.stream = pa.open(
             rate=sampling_rate,
             channels=1,
@@ -50,6 +51,9 @@ class LocalAudioSink(AudioSink):
         sampling_rate: int,
         output_device_index: Optional[int] = None,
     ):
+        import pyaudio
+
+        pa = pyaudio.PyAudio()
         self.stream = pa.open(
             rate=sampling_rate,
             channels=1,
