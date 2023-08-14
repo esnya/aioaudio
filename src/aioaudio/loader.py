@@ -1,58 +1,14 @@
-from typing import Literal, Optional, Union
-from typing_extensions import Annotated
-from pydantic import BaseModel, Field
+from typing import Optional, Union
 
-from .base import AudioSource, AudioSink
+from pydantic import Field
+from typing_extensions import Annotated, deprecated
 
-
-class AudioSourceBaseModel(BaseModel):
-    mode: str
-
-
-class AudioSinkBaseModel(BaseModel):
-    mode: str
-
-
-class LocalAudioSourceConfig(AudioSourceBaseModel):
-    mode: Literal["local"] = "local"
-    seconds_per_buffer: float = 10
-    input_device_index: Optional[int] = None
-
-
-class LocalAudioSinkConfig(AudioSinkBaseModel):
-    mode: Literal["local"] = "local"
-    output_device_index: Optional[int] = None
-
-
-class WebsocketServerAudioConfig(AudioSourceBaseModel, AudioSinkBaseModel):
-    mode: Literal["websocket-server"] = "websocket-server"
-    host: str = "localhost"
-    port: int = 8765
-
-
-class WebsocketClientAuduioConfig(AudioSourceBaseModel, AudioSinkBaseModel):
-    mode: Literal["websocket-client"] = "websocket-client"
-    url: str = "ws://localhost:8765"
-
-
-class RTPAudioSourceConfig(AudioSourceBaseModel):
-    mode: Literal["rtp"] = "rtp"
-    seconds_per_buffer: float = 10
-    url: str = "rtp://localhost:1234"
-
-
-class RTPAudioSinkConfig(AudioSinkBaseModel):
-    mode: Literal["rtp"] = "rtp"
-    url: str = "rtp://localhost:1234"
-
-
-class RTMPAudioSinkConfig(AudioSinkBaseModel):
-    mode: Literal["rtmp"] = "rtmp"
-    format: str = "f32le"
-    channels: int = 1
-    url: str = "rtmp://localhost:1234/live/test"
-    keep_alive_interval: Optional[int] = None
-
+from .base import AudioSink, AudioSource
+from .local_config import LocalAudioSinkConfig, LocalAudioSourceConfig
+from .rtmp_config import RTMPAudioSinkConfig
+from .rtp_config import RTPAudioSinkConfig, RTPAudioSourceConfig
+from .void import VoidAudioSink, VoidAudioSource
+from .websocket_config import WebsocketClientAuduioConfig, WebsocketServerAudioConfig
 
 AudioSourceConfig = Annotated[
     Union[
@@ -76,8 +32,17 @@ AudioSinkConfig = Annotated[
 ]
 
 
+@deprecated("Use load_audio_source instead of audio_source. This will be removed soon.")
 def audio_source(config: AudioSourceConfig, sampling_rate: int) -> AudioSource:
+    return load_audio_source(config, sampling_rate)
+
+
+def load_audio_source(
+    config: Optional[AudioSourceConfig], sampling_rate: int
+) -> AudioSource:
     match config:
+        case None:
+            return VoidAudioSource()
         case LocalAudioSourceConfig(
             seconds_per_buffer=seconds_per_buffer,
             input_device_index=input_device_index,
@@ -109,23 +74,19 @@ def audio_source(config: AudioSourceConfig, sampling_rate: int) -> AudioSource:
                 sampling_rate,
                 url=url,
             )
-        # case RTPAudioSourceConfig(
-        #     seconds_per_buffer=seconds_per_buffer,
-        #     url=url,
-        # ):
-        #     from .rtp import RTPAudioSource
-
-        #     return RTPAudioSource(
-        #         int(seconds_per_buffer * sampling_rate * 4),
-        #         sampling_rate,
-        #         sdp,
-        #     )
         case _:
             raise NotImplementedError("Unknown audio source for config %s", config)
 
 
-def audio_sink(config: AudioSinkBaseModel, sampling_rate: int) -> AudioSink:
+@deprecated("Use load_audio_sink instead of audio_sink. This will be removed soon.")
+def audio_sink(config: AudioSinkConfig, sampling_rate: int) -> AudioSink:
+    return load_audio_sink(config, sampling_rate)
+
+
+def load_audio_sink(config: Optional[AudioSinkConfig], sampling_rate: int) -> AudioSink:
     match config:
+        case None:
+            return VoidAudioSink()
         case LocalAudioSinkConfig(
             output_device_index=output_device_index,
         ):

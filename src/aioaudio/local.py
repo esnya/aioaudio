@@ -13,26 +13,29 @@ class LocalAudioSource(AudioSource):
         frames_per_buffer: int,
         input_device_index: Optional[int] = None,
     ):
+        self.sampling_rate = sampling_rate
+        self.frames_per_buffer = frames_per_buffer
+        self.input_device_index = input_device_index
+
+    async def __aenter__(self):
         import pyaudio
 
-        pa = pyaudio.PyAudio()
-        self.stream = pa.open(
-            rate=sampling_rate,
+        self.pa = pyaudio.PyAudio()
+        self.stream = self.pa.open(
+            rate=self.sampling_rate,
             channels=1,
             format=pyaudio.paFloat32,
             input=True,
-            frames_per_buffer=frames_per_buffer,
-            input_device_index=input_device_index,
+            frames_per_buffer=self.frames_per_buffer,
+            input_device_index=self.input_device_index,
         )
-        self.frames_per_buffer = frames_per_buffer
-
-    async def __aenter__(self):
         self.stream.start_stream()
         return self
 
     async def __aexit__(self, *_, **__):
         self.stream.stop_stream()
         self.stream.close()
+        self.pa.terminate()
 
     async def __aiter__(self) -> AsyncIterator[np.ndarray]:
         while self.stream.is_active():
@@ -51,24 +54,28 @@ class LocalAudioSink(AudioSink):
         sampling_rate: int,
         output_device_index: Optional[int] = None,
     ):
+        self.sampling_rate = sampling_rate
+        self.output_device_index = output_device_index
+
+    async def __aenter__(self):
         import pyaudio
 
-        pa = pyaudio.PyAudio()
-        self.stream = pa.open(
-            rate=sampling_rate,
+        self.pa = pyaudio.PyAudio()
+        self.stream = self.pa.open(
+            rate=self.sampling_rate,
             channels=1,
             format=pyaudio.paFloat32,
             output=True,
-            output_device_index=output_device_index,
+            output_device_index=self.output_device_index,
         )
 
-    async def __aenter__(self):
         self.stream.start_stream()
         return self
 
     async def __aexit__(self, *args, **kwargs):
         self.stream.stop_stream()
         self.stream.close()
+        self.pa.terminate()
 
     async def write(self, audio: np.ndarray):
         await asyncio.to_thread(self.stream.write, audio.tobytes())

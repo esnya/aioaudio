@@ -5,8 +5,8 @@ from typing import AsyncContextManager, AsyncIterator
 
 import numpy as np
 
-from aioaudio.ffmpeg import F2N, ffmpeg_sink, ffmpeg_source
-from .base import AudioSource, AudioSink
+from .base import AudioSink, AudioSource
+from .ffmpeg import F2N, ffmpeg_sink, ffmpeg_source
 
 
 class RTPAudioSource(AudioSource):
